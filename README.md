@@ -26,23 +26,23 @@ The project is being developed with a modern full-stack architecture using **Rea
 
 ## # Tech Stack
 
-### Frontend
+### # Frontend
 - React
 - Vite
 - JavaScript
 - CSS
 
-### Backend
+### # Backend
 - FastAPI
 - Python
 
-### Computer Vision & AI
+### # Computer Vision & AI
 - OpenCV
 - YOLO
 - EasyOCR
 - NumPy
 
-### Database
+### # Database
 - SQLite (initially)
 - PostgreSQL (future)
 
