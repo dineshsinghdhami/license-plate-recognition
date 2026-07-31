@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Environment variables
+.env
+*.env
+
+# IDE and operating system
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Uploaded and generated files
+backend/uploads/*
+outputs/*
+
+# Keep empty directories
+!backend/uploads/.gitkeep
+!outputs/.gitkeep
+
+# Machine-learning model files
+*.pt
+*.pth
+*.onnx
