@@ -54,6 +54,56 @@ h1 {
   line-height: 1.6;
 }
 
+.status-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(360px, 100%);
+  margin: 0 auto 24px;
+  padding: 14px 18px;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+}
+
+.status-box strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.status-box p {
+  margin: 0;
+  text-transform: capitalize;
+  color: #596579;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.status-healthy .status-indicator {
+  background: #16a34a;
+}
+
+.status-unavailable .status-indicator {
+  background: #dc2626;
+}
+
+.status-checking .status-indicator {
+  background: #d97706;
+}
+
+.error-message {
+  margin: -10px 0 24px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
 button {
   padding: 13px 22px;
   border: 0;
