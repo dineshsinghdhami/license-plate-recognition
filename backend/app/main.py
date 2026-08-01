@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.upload import router as upload_router
+
 
 app = FastAPI(
     title="License Plate Recognition API",
@@ -21,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(upload_router)
 
 @app.get("/")
 async def root() -> dict[str, str]:
