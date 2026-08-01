@@ -1,8 +1,16 @@
 from pathlib import Path
 from typing import Any
 
-import cv2
+import numpy as np
+from numpy.typing import NDArray
 from ultralytics import YOLO
+
+from app.services.memory_image_service import (
+    encode_image_as_data_url,
+)
+
+
+ImageArray = NDArray[np.uint8]
 
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parents[3]
@@ -21,8 +29,7 @@ _model: YOLO | None = None
 
 def get_license_plate_model() -> YOLO:
     """
-    Load the custom license plate model once
-    and reuse it for future requests.
+    Load the custom YOLO model once and reuse it.
     """
 
     global _model
@@ -41,32 +48,28 @@ def get_license_plate_model() -> YOLO:
     return _model
 
 
-def detect_objects(
-    source_path: Path,
-    output_path: Path,
-    crop_output_directory: Path,
-    unique_name: str,
-    confidence_threshold: float = 0.35,
+def detect_license_plates(
+    original_image: ImageArray,
+    confidence_threshold: float = 0.20,
 ) -> dict[str, Any]:
     """
-    Detect license plates, save an annotated image,
-    and save a separate cropped image for each plate.
+    Detect license plates from an in-memory image.
+
+    OCR is intentionally disabled for faster processing.
+    Nothing is saved to disk.
     """
+
+    if original_image is None or original_image.size == 0:
+        raise ValueError(
+            "The source image is empty."
+        )
 
     model = get_license_plate_model()
 
-    original_image = cv2.imread(
-        str(source_path)
-    )
-
-    if original_image is None:
-        raise ValueError(
-            "The source image could not be opened."
-        )
-
     results = model.predict(
-        source=str(source_path),
+        source=original_image,
         conf=confidence_threshold,
+        imgsz=512,
         device="cpu",
         verbose=False,
     )
@@ -80,32 +83,12 @@ def detect_objects(
 
     annotated_image = result.plot()
 
-    saved = cv2.imwrite(
-        str(output_path),
-        annotated_image,
-    )
-
-    if not saved:
-        raise RuntimeError(
-            "The detection image could not be saved."
-        )
-
-    crop_output_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    image_height, image_width = (
-        original_image.shape[:2]
-    )
+    image_height, image_width = original_image.shape[:2]
 
     detections: list[dict[str, Any]] = []
 
     if result.boxes is not None:
-        for index, box in enumerate(
-            result.boxes,
-            start=1,
-        ):
+        for box in result.boxes:
             class_id = int(box.cls.item())
             confidence = float(box.conf.item())
 
@@ -133,38 +116,21 @@ def detect_objects(
                 int(round(y2_float)),
             )
 
-            class_name = result.names[class_id]
+            class_name = str(
+                result.names[class_id]
+            )
 
             cropped_plate = original_image[
                 y1:y2,
                 x1:x2,
             ]
 
-            crop_filename = (
-                f"{unique_name}_plate_{index}.jpg"
-            )
+            crop_data_url: str | None = None
 
-            crop_path = (
-                crop_output_directory
-                / crop_filename
-            )
-
-            if cropped_plate.size == 0:
-                crop_url = None
-            else:
-                crop_saved = cv2.imwrite(
-                    str(crop_path),
+            if cropped_plate.size > 0:
+                crop_data_url = encode_image_as_data_url(
                     cropped_plate,
-                )
-
-                if not crop_saved:
-                    raise RuntimeError(
-                        "A detected license plate crop "
-                        "could not be saved."
-                    )
-
-                crop_url = (
-                    f"/outputs/{crop_filename}"
+                    extension=".jpg",
                 )
 
             detections.append(
@@ -181,12 +147,15 @@ def detect_objects(
                         "x2": x2,
                         "y2": y2,
                     },
-                    "crop_filename": crop_filename,
-                    "crop_url": crop_url,
+                    "crop_image": crop_data_url,
                 }
             )
 
     return {
         "detection_count": len(detections),
         "detections": detections,
+        "annotated_image": encode_image_as_data_url(
+            annotated_image,
+            extension=".jpg",
+        ),
     }

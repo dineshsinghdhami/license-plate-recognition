@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 
 import {
-  API_BASE_URL,
   uploadVehicleImage,
 } from "../services/api";
+import "./ImageUploader.css";
 
 
 export default function ImageUploader() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [uploadResult, setUploadResult] = useState(null);
-  const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
 
   useEffect(() => {
@@ -31,11 +30,29 @@ export default function ImageUploader() {
   }, [selectedFile]);
 
 
+  async function processSelectedImage(file) {
+    try {
+      setIsProcessing(true);
+      setErrorMessage("");
+      setUploadResult(null);
+
+      const result = await uploadVehicleImage(file);
+
+      setUploadResult(result);
+    } catch (error) {
+      setErrorMessage(
+        error.message || "Something went wrong.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+
   function handleFileChange(event) {
     const file = event.target.files?.[0];
 
     setUploadResult(null);
-    setMessage("");
     setErrorMessage("");
 
     if (!file) {
@@ -56,7 +73,6 @@ export default function ImageUploader() {
       );
 
       event.target.value = "";
-
       return;
     }
 
@@ -70,237 +86,147 @@ export default function ImageUploader() {
       );
 
       event.target.value = "";
-
       return;
     }
 
     setSelectedFile(file);
+
+    processSelectedImage(file);
   }
 
 
-  async function handleUpload() {
-    if (!selectedFile) {
-      setErrorMessage("Please select an image first.");
-      return;
-    }
+  const firstDetection =
+    uploadResult?.detection?.objects?.[0];
 
-    try {
-      setIsUploading(true);
-      setMessage("");
-      setErrorMessage("");
-      setUploadResult(null);
+  const detectionConfidence = firstDetection
+    ? (firstDetection.confidence * 100).toFixed(1)
+    : null;
 
-      const result = await uploadVehicleImage(selectedFile);
-
-      setUploadResult(result);
-      setMessage(result.message);
-    } catch (error) {
-      setErrorMessage(
-        error.message || "Something went wrong.",
-      );
-    } finally {
-      setIsUploading(false);
-    }
-  }
+  const ocrConfidence =
+    firstDetection?.ocr_results?.length > 0
+      ? (
+          firstDetection.ocr_results[0].confidence * 100
+        ).toFixed(1)
+      : "0.0";
 
 
   return (
-    <section className="uploader">
-      <label
-        className="file-label"
-        htmlFor="vehicle-image"
-      >
-        Select a vehicle image
-      </label>
+    <section className="scan-station">
 
-      <input
-        id="vehicle-image"
-        type="file"
-        accept=".jpg,.jpeg,.png,image/jpeg,image/png"
-        onChange={handleFileChange}
-      />
+      <section className="lane-input" aria-label="Upload vehicle image">
+        <h2>Upload a vehicle photo</h2>
+        <p className="lede">
+          It's read and matched right away — nothing gets saved on the server.
+        </p>
 
-      {selectedFile && (
-        <div className="file-information">
-          <p>
-            <strong>Filename:</strong>{" "}
-            {selectedFile.name}
+        <label className="drop-zone" htmlFor="vehicle-image">
+          <span className="drop-zone__title">Click to choose an image</span>
+          <span className="drop-zone__hint">jpg, jpeg or png, up to 5MB</span>
+
+          <input
+            id="vehicle-image"
+            type="file"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+            onChange={handleFileChange}
+          />
+        </label>
+
+        {selectedFile && (
+          <p className="file-meta">
+            {selectedFile.name} · {(selectedFile.size / 1024).toFixed(1)} KB
           </p>
+        )}
 
-          <p>
-            <strong>Size:</strong>{" "}
-            {(selectedFile.size / 1024).toFixed(2)} KB
-          </p>
-        </div>
-      )}
-
-      {previewUrl && (
-        <div className="image-section">
-          <h2>Selected image</h2>
-
+        {previewUrl && (
           <img
             src={previewUrl}
             alt="Selected vehicle preview"
             className="preview-image"
           />
-        </div>
-      )}
+        )}
 
-      <button
-        type="button"
-        onClick={handleUpload}
-        disabled={!selectedFile || isUploading}
-      >
-        {isUploading
-          ? "Uploading and processing..."
-          : "Upload and process"}
-      </button>
+        {isProcessing && (
+          <p className="status-line" role="status">
+            Detecting the plate and reading the text…
+          </p>
+        )}
 
-      {message && (
-        <p className="success-message">
-          {message}
-        </p>
-      )}
+        {errorMessage && (
+          <p className="status-line status-line--error" role="alert">
+            {errorMessage}
+          </p>
+        )}
+      </section>
 
-      {errorMessage && (
-        <p className="error-message">
-          {errorMessage}
-        </p>
-      )}
+      <section className="lane-output" aria-label="Recognition result">
 
-      {uploadResult && (
-        <div className="result-section">
-          <h2>Image preprocessing results</h2>
+        {!uploadResult && !isProcessing && (
+          <div className="placeholder">
+            <p>Nothing to show yet — pick an image on the left.</p>
+          </div>
+        )}
 
-          <div className="image-comparison">
-            <article>
-              <h3>Original</h3>
+        {isProcessing && (
+          <div className="placeholder">
+            <span className="spinner" aria-hidden="true" />
+            <p>Running detection, then OCR on whatever it finds…</p>
+          </div>
+        )}
 
-              <img
-                src={`${API_BASE_URL}${uploadResult.original_url}`}
-                alt="Original vehicle"
-                className="preview-image"
-              />
-            </article>
+        {uploadResult && !firstDetection && (
+          <div>
+            <p className="result-status result-status--none">
+              Couldn't find a plate in that one
+            </p>
+            <img
+              src={uploadResult.detection.annotated_image}
+              alt="Detection result, no plate found"
+              className="preview-image"
+            />
+            <p className="lede">
+              Try a shot where the plate sits larger in the frame and isn't at an angle.
+            </p>
+          </div>
+        )}
 
-            {Object.entries(
-              uploadResult.processed_images,
-            ).map(([name, url]) => (
-              <article key={name}>
-                <h3>
-                  {name.charAt(0).toUpperCase()
-                    + name.slice(1)}
-                </h3>
+        {uploadResult && firstDetection && (
+          <div>
+            <p className="result-status">Found a plate</p>
 
+            <img
+              src={uploadResult.detection.annotated_image}
+              alt="License plate detection result"
+              className="preview-image"
+            />
+
+            <div className="plate-result">
+              <span className="plate-result__text">
+                {firstDetection.plate_text || "couldn't read the characters"}
+              </span>
+              <span className="plate-result__conf">
+                detection {detectionConfidence}% · ocr {ocrConfidence}%
+              </span>
+            </div>
+
+            {firstDetection.crop_image && (
+              <div className="crop-row">
                 <img
-                  src={`${API_BASE_URL}${url}`}
-                  alt={`${name} processing result`}
-                  className="preview-image"
+                  src={firstDetection.crop_image}
+                  alt="Cropped license plate"
+                  className="crop-row__image"
                 />
-              </article>
-            ))}
-          </div>
+                <span className="crop-row__label">cropped from the frame above</span>
+              </div>
+            )}
 
-          <div className="dimensions-box">
-            <p>
-              <strong>Original dimensions:</strong>{" "}
-              {uploadResult.dimensions.original_width}
-              {" × "}
-              {uploadResult.dimensions.original_height}
-            </p>
-
-            <p>
-              <strong>Processed dimensions:</strong>{" "}
-              {uploadResult.dimensions.processed_width}
-              {" × "}
-              {uploadResult.dimensions.processed_height}
+            <p className="coords">
+              box: {firstDetection.bounding_box.x1}, {firstDetection.bounding_box.y1}
+              {" "}&rarr;{" "}
+              {firstDetection.bounding_box.x2}, {firstDetection.bounding_box.y2}
             </p>
           </div>
-
-          {uploadResult.detection && (
-            <section className="detection-section">
-              <h2>YOLO License Plate Detection</h2>
-
-              <img
-                src={`${API_BASE_URL}${uploadResult.detection.image_url}`}
-                alt="YOLO license plate detection result"
-                className="preview-image"
-              />
-
-              <p className="detection-summary">
-                <strong>Detected plates:</strong>{" "}
-                {uploadResult.detection.count}
-              </p>
-
-              {uploadResult.detection.objects.length > 0 ? (
-                <div className="detection-list">
-                  {uploadResult.detection.objects.map(
-                    (detectedObject, index) => (
-                      <article
-                        className="detection-item"
-                        key={`${detectedObject.class_name}-${index}`}
-                      >
-                        <h3>
-                          {index + 1}.{" "}
-                          {detectedObject.class_name}
-                        </h3>
-
-                        <p>
-                          <strong>Confidence:</strong>{" "}
-                          {(
-                            detectedObject.confidence * 100
-                          ).toFixed(2)}
-                          %
-                        </p>
-
-                        <p>
-                          <strong>Bounding box:</strong>
-                        </p>
-
-                        <p>
-                          x1:{" "}
-                          {detectedObject.bounding_box.x1}
-                        </p>
-
-                        <p>
-                          y1:{" "}
-                          {detectedObject.bounding_box.y1}
-                        </p>
-
-                        <p>
-                          x2:{" "}
-                          {detectedObject.bounding_box.x2}
-                        </p>
-
-                        <p>
-                          y2:{" "}
-                          {detectedObject.bounding_box.y2}
-                        </p>
-
-                        {detectedObject.crop_url && (
-                          <div className="plate-crop-section">
-                            <h4>Cropped license plate</h4>
-
-                            <img
-                              src={`${API_BASE_URL}${detectedObject.crop_url}`}
-                              alt={`Cropped license plate ${index + 1}`}
-                              className="plate-crop-image"
-                            />
-                          </div>
-                        )}
-                      </article>
-                    ),
-                  )}
-                </div>
-              ) : (
-                <p>
-                  No license plate was detected in this image.
-                </p>
-              )}
-            </section>
-          )}
-        </div>
-      )}
+        )}
+      </section>
     </section>
   );
 }

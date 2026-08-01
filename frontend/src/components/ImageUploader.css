@@ -1,0 +1,221 @@
+/* Plate Scanner — component styles
+   Kept deliberately plain: one typeface, one accent color used
+   in exactly one place, and no border around every element. */
+
+.scan-station {
+  --ink: #1c1c1a;
+  --muted: #767268;
+  --line: #ddd8ce;
+  --paper: #faf9f6;
+  --accent: #a8590c;
+  --bad: #a3311a;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.scan-station * {
+  box-sizing: border-box;
+}
+
+.lane-input,
+.lane-output {
+  padding: 32px;
+}
+
+.lane-input {
+  border-right: 1px solid var(--line);
+}
+
+.scan-station h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.lede {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* upload control — just a button-shaped label, nothing fancier */
+
+.drop-zone {
+  position: relative;
+  display: block;
+  padding: 18px 20px;
+  border: 1px solid var(--ink);
+  cursor: pointer;
+}
+
+.drop-zone:hover {
+  background: #f1efe8;
+}
+
+.drop-zone__title {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.drop-zone__hint {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.drop-zone:focus-within {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.file-meta {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preview-image {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  margin-top: 18px;
+  background: #fff;
+}
+
+.status-line {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status-line--error {
+  color: var(--bad);
+}
+
+/* result side */
+
+.placeholder {
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--ink);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.result-status {
+  margin: 0 0 14px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.result-status--none {
+  color: var(--bad);
+}
+
+/* the plate number — the one place color and the mono digits earn their keep */
+
+.plate-result {
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 2px solid var(--accent);
+}
+
+.plate-result__text {
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 0.06em;
+}
+
+.plate-result__conf {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.crop-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.crop-row__image {
+  width: 140px;
+  max-height: 70px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.crop-row__label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.coords {
+  margin: 16px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-family: "Courier New", Courier, monospace;
+}
+
+@media (max-width: 760px) {
+  .scan-station {
+    grid-template-columns: 1fr;
+  }
+
+  .lane-input {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lane-input,
+  .lane-output {
+    padding: 24px;
+  }
+}

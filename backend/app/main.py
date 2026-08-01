@@ -6,6 +6,8 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.upload import router as upload_router
 
+from app.api.video import router as video_router
+
 
 BASE_DIRECTORY = Path(__file__).resolve().parent.parent
 UPLOAD_DIRECTORY = BASE_DIRECTORY / "uploads"
@@ -46,6 +48,8 @@ app.mount(
 )
 
 app.include_router(upload_router)
+
+app.include_router(video_router)
 
 
 @app.get("/")

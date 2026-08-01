@@ -42,7 +42,40 @@ export async function uploadVehicleImage(file) {
   if (!response.ok) {
     throw new Error(
       data.detail
-        || "The image could not be uploaded.",
+        || "The image could not be analyzed.",
+    );
+  }
+
+  return data;
+}
+
+
+export async function analyzeVideoFrame(
+  frameBlob,
+  frameNumber,
+) {
+  const formData = new FormData();
+
+  formData.append(
+    "file",
+    frameBlob,
+    `frame-${frameNumber}.jpg`,
+  );
+
+  const response = await fetch(
+    `${API_BASE_URL}/video/frame?frame_number=${frameNumber}`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      data.detail
+        || "The video frame could not be analyzed.",
     );
   }
 
