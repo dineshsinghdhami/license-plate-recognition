@@ -1,0 +1,8 @@
+path: "C:/Users/Dinesh Singh Dhami/Downloads/license-plate-recognition/data/license_plate_dataset"
+
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: license_plate

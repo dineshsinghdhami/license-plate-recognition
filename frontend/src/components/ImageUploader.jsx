@@ -219,16 +219,16 @@ export default function ImageUploader() {
 
           {uploadResult.detection && (
             <section className="detection-section">
-              <h2>YOLO Object Detection</h2>
+              <h2>YOLO License Plate Detection</h2>
 
               <img
                 src={`${API_BASE_URL}${uploadResult.detection.image_url}`}
-                alt="YOLO object detection result"
+                alt="YOLO license plate detection result"
                 className="preview-image"
               />
 
               <p className="detection-summary">
-                <strong>Detected objects:</strong>{" "}
+                <strong>Detected plates:</strong>{" "}
                 {uploadResult.detection.count}
               </p>
 
@@ -259,39 +259,42 @@ export default function ImageUploader() {
 
                         <p>
                           x1:{" "}
-                          {
-                            detectedObject.bounding_box.x1
-                          }
+                          {detectedObject.bounding_box.x1}
                         </p>
 
                         <p>
                           y1:{" "}
-                          {
-                            detectedObject.bounding_box.y1
-                          }
+                          {detectedObject.bounding_box.y1}
                         </p>
 
                         <p>
                           x2:{" "}
-                          {
-                            detectedObject.bounding_box.x2
-                          }
+                          {detectedObject.bounding_box.x2}
                         </p>
 
                         <p>
                           y2:{" "}
-                          {
-                            detectedObject.bounding_box.y2
-                          }
+                          {detectedObject.bounding_box.y2}
                         </p>
+
+                        {detectedObject.crop_url && (
+                          <div className="plate-crop-section">
+                            <h4>Cropped license plate</h4>
+
+                            <img
+                              src={`${API_BASE_URL}${detectedObject.crop_url}`}
+                              alt={`Cropped license plate ${index + 1}`}
+                              className="plate-crop-image"
+                            />
+                          </div>
+                        )}
                       </article>
                     ),
                   )}
                 </div>
               ) : (
                 <p>
-                  No common objects were detected in this
-                  image.
+                  No license plate was detected in this image.
                 </p>
               )}
             </section>

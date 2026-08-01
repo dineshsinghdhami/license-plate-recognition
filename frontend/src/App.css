@@ -258,3 +258,23 @@ button:disabled {
   margin: 5px 0;
   color: #596579;
 }
+
+.plate-crop-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #dce3ec;
+}
+
+.plate-crop-section h4 {
+  margin: 0 0 10px;
+}
+
+.plate-crop-image {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border: 1px solid #dce3ec;
+  border-radius: 8px;
+  background: #eef2f7;
+}

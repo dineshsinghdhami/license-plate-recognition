@@ -103,10 +103,12 @@ async def upload_image(
 
         # Step 9: Run YOLO object detection.
         detection_result = detect_objects(
-            source_path=original_path,
-            output_path=detection_path,
-            confidence_threshold=0.35,
-        )
+    source_path=original_path,
+    output_path=detection_path,
+    crop_output_directory=OUTPUT_DIRECTORY,
+    unique_name=unique_name,
+    confidence_threshold=0.35,
+)
 
     except ValueError as error:
         # A ValueError normally means OpenCV could not
