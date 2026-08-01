@@ -145,37 +145,52 @@ export default function ImageUploader() {
       )}
 
       {uploadResult && (
-        <div className="result-section">
-          <h2>Processing result</h2>
+  <div className="result-section">
+    <h2>Image preprocessing results</h2>
 
-          <div className="image-comparison">
-            <article>
-              <h3>Original</h3>
+    <div className="image-comparison">
+      <article>
+        <h3>Original</h3>
 
-              <img
-                src={`${API_BASE_URL}${uploadResult.original_url}`}
-                alt="Uploaded vehicle"
-                className="preview-image"
-              />
-            </article>
+        <img
+          src={`${API_BASE_URL}${uploadResult.original_url}`}
+          alt="Original vehicle"
+          className="preview-image"
+        />
+      </article>
 
-            <article>
-              <h3>Grayscale</h3>
+      {Object.entries(uploadResult.processed_images).map(
+        ([name, url]) => (
+          <article key={name}>
+            <h3>
+              {name.charAt(0).toUpperCase() + name.slice(1)}
+            </h3>
 
-              <img
-                src={`${API_BASE_URL}${uploadResult.processed_url}`}
-                alt="Grayscale vehicle"
-                className="preview-image"
-              />
-            </article>
-          </div>
-
-          <p>
-            Image dimensions: {uploadResult.width} ×{" "}
-            {uploadResult.height} pixels
-          </p>
-        </div>
+            <img
+              src={`${API_BASE_URL}${url}`}
+              alt={`${name} processing result`}
+              className="preview-image"
+            />
+          </article>
+        ),
       )}
+    </div>
+
+    <div className="dimensions-box">
+      <p>
+        <strong>Original dimensions:</strong>{" "}
+        {uploadResult.dimensions.original_width} ×{" "}
+        {uploadResult.dimensions.original_height}
+      </p>
+
+      <p>
+        <strong>Processed dimensions:</strong>{" "}
+        {uploadResult.dimensions.processed_width} ×{" "}
+        {uploadResult.dimensions.processed_height}
+      </p>
+    </div>
+  </div>
+)}
     </section>
   );
 }

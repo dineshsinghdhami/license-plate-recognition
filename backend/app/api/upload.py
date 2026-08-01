@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.services.image_service import create_grayscale_image
+from app.services.image_service import process_vehicle_image
 
 
 router = APIRouter(
@@ -24,7 +24,6 @@ ALLOWED_CONTENT_TYPES = {
 }
 
 MAX_FILE_SIZE = 5 * 1024 * 1024
-
 
 @router.post("/")
 async def upload_image(
@@ -54,17 +53,15 @@ async def upload_image(
     unique_name = uuid4().hex
 
     original_filename = f"{unique_name}{extension}"
-    processed_filename = f"{unique_name}_grayscale.jpg"
-
     original_path = UPLOAD_DIRECTORY / original_filename
-    processed_path = OUTPUT_DIRECTORY / processed_filename
 
     try:
         original_path.write_bytes(file_contents)
 
-        width, height = create_grayscale_image(
+        processing_result = process_vehicle_image(
             source_path=original_path,
-            output_path=processed_path,
+            output_directory=OUTPUT_DIRECTORY,
+            unique_name=unique_name,
         )
 
     except ValueError as error:
@@ -77,7 +74,6 @@ async def upload_image(
 
     except Exception as error:
         original_path.unlink(missing_ok=True)
-        processed_path.unlink(missing_ok=True)
 
         raise HTTPException(
             status_code=500,
@@ -90,9 +86,31 @@ async def upload_image(
     return {
         "message": "Image uploaded and processed successfully.",
         "original_filename": original_filename,
-        "processed_filename": processed_filename,
-        "width": width,
-        "height": height,
         "original_url": f"/uploads/{original_filename}",
-        "processed_url": f"/outputs/{processed_filename}",
+        "dimensions": {
+            "original_width": processing_result["original_width"],
+            "original_height": processing_result["original_height"],
+            "processed_width": processing_result["processed_width"],
+            "processed_height": processing_result["processed_height"],
+        },
+        "processed_images": {
+            "resized": (
+                f"/outputs/{processing_result['resized_filename']}"
+            ),
+            "grayscale": (
+                f"/outputs/{processing_result['grayscale_filename']}"
+            ),
+            "blurred": (
+                f"/outputs/{processing_result['blurred_filename']}"
+            ),
+            "contrast": (
+                f"/outputs/{processing_result['contrast_filename']}"
+            ),
+            "threshold": (
+                f"/outputs/{processing_result['threshold_filename']}"
+            ),
+            "edges": (
+                f"/outputs/{processing_result['edges_filename']}"
+            ),
+        },
     }
