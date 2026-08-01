@@ -5,6 +5,7 @@ import {
   uploadVehicleImage,
 } from "../services/api";
 
+
 export default function ImageUploader() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
@@ -13,6 +14,7 @@ export default function ImageUploader() {
   const [errorMessage, setErrorMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
 
+
   useEffect(() => {
     if (!selectedFile) {
       setPreviewUrl("");
@@ -20,12 +22,14 @@ export default function ImageUploader() {
     }
 
     const objectUrl = URL.createObjectURL(selectedFile);
+
     setPreviewUrl(objectUrl);
 
     return () => {
       URL.revokeObjectURL(objectUrl);
     };
   }, [selectedFile]);
+
 
   function handleFileChange(event) {
     const file = event.target.files?.[0];
@@ -46,10 +50,13 @@ export default function ImageUploader() {
 
     if (!allowedTypes.includes(file.type)) {
       setSelectedFile(null);
+
       setErrorMessage(
         "Please select a JPG, JPEG, or PNG image.",
       );
+
       event.target.value = "";
+
       return;
     }
 
@@ -57,15 +64,19 @@ export default function ImageUploader() {
 
     if (file.size > maximumSize) {
       setSelectedFile(null);
+
       setErrorMessage(
         "The selected image must be smaller than 5 MB.",
       );
+
       event.target.value = "";
+
       return;
     }
 
     setSelectedFile(file);
   }
+
 
   async function handleUpload() {
     if (!selectedFile) {
@@ -84,15 +95,21 @@ export default function ImageUploader() {
       setUploadResult(result);
       setMessage(result.message);
     } catch (error) {
-      setErrorMessage(error.message);
+      setErrorMessage(
+        error.message || "Something went wrong.",
+      );
     } finally {
       setIsUploading(false);
     }
   }
 
+
   return (
     <section className="uploader">
-      <label className="file-label" htmlFor="vehicle-image">
+      <label
+        className="file-label"
+        htmlFor="vehicle-image"
+      >
         Select a vehicle image
       </label>
 
@@ -106,7 +123,8 @@ export default function ImageUploader() {
       {selectedFile && (
         <div className="file-information">
           <p>
-            <strong>Filename:</strong> {selectedFile.name}
+            <strong>Filename:</strong>{" "}
+            {selectedFile.name}
           </p>
 
           <p>
@@ -133,64 +151,153 @@ export default function ImageUploader() {
         onClick={handleUpload}
         disabled={!selectedFile || isUploading}
       >
-        {isUploading ? "Uploading..." : "Upload and process"}
+        {isUploading
+          ? "Uploading and processing..."
+          : "Upload and process"}
       </button>
 
       {message && (
-        <p className="success-message">{message}</p>
+        <p className="success-message">
+          {message}
+        </p>
       )}
 
       {errorMessage && (
-        <p className="error-message">{errorMessage}</p>
+        <p className="error-message">
+          {errorMessage}
+        </p>
       )}
 
       {uploadResult && (
-  <div className="result-section">
-    <h2>Image preprocessing results</h2>
+        <div className="result-section">
+          <h2>Image preprocessing results</h2>
 
-    <div className="image-comparison">
-      <article>
-        <h3>Original</h3>
+          <div className="image-comparison">
+            <article>
+              <h3>Original</h3>
 
-        <img
-          src={`${API_BASE_URL}${uploadResult.original_url}`}
-          alt="Original vehicle"
-          className="preview-image"
-        />
-      </article>
+              <img
+                src={`${API_BASE_URL}${uploadResult.original_url}`}
+                alt="Original vehicle"
+                className="preview-image"
+              />
+            </article>
 
-      {Object.entries(uploadResult.processed_images).map(
-        ([name, url]) => (
-          <article key={name}>
-            <h3>
-              {name.charAt(0).toUpperCase() + name.slice(1)}
-            </h3>
+            {Object.entries(
+              uploadResult.processed_images,
+            ).map(([name, url]) => (
+              <article key={name}>
+                <h3>
+                  {name.charAt(0).toUpperCase()
+                    + name.slice(1)}
+                </h3>
 
-            <img
-              src={`${API_BASE_URL}${url}`}
-              alt={`${name} processing result`}
-              className="preview-image"
-            />
-          </article>
-        ),
+                <img
+                  src={`${API_BASE_URL}${url}`}
+                  alt={`${name} processing result`}
+                  className="preview-image"
+                />
+              </article>
+            ))}
+          </div>
+
+          <div className="dimensions-box">
+            <p>
+              <strong>Original dimensions:</strong>{" "}
+              {uploadResult.dimensions.original_width}
+              {" × "}
+              {uploadResult.dimensions.original_height}
+            </p>
+
+            <p>
+              <strong>Processed dimensions:</strong>{" "}
+              {uploadResult.dimensions.processed_width}
+              {" × "}
+              {uploadResult.dimensions.processed_height}
+            </p>
+          </div>
+
+          {uploadResult.detection && (
+            <section className="detection-section">
+              <h2>YOLO Object Detection</h2>
+
+              <img
+                src={`${API_BASE_URL}${uploadResult.detection.image_url}`}
+                alt="YOLO object detection result"
+                className="preview-image"
+              />
+
+              <p className="detection-summary">
+                <strong>Detected objects:</strong>{" "}
+                {uploadResult.detection.count}
+              </p>
+
+              {uploadResult.detection.objects.length > 0 ? (
+                <div className="detection-list">
+                  {uploadResult.detection.objects.map(
+                    (detectedObject, index) => (
+                      <article
+                        className="detection-item"
+                        key={`${detectedObject.class_name}-${index}`}
+                      >
+                        <h3>
+                          {index + 1}.{" "}
+                          {detectedObject.class_name}
+                        </h3>
+
+                        <p>
+                          <strong>Confidence:</strong>{" "}
+                          {(
+                            detectedObject.confidence * 100
+                          ).toFixed(2)}
+                          %
+                        </p>
+
+                        <p>
+                          <strong>Bounding box:</strong>
+                        </p>
+
+                        <p>
+                          x1:{" "}
+                          {
+                            detectedObject.bounding_box.x1
+                          }
+                        </p>
+
+                        <p>
+                          y1:{" "}
+                          {
+                            detectedObject.bounding_box.y1
+                          }
+                        </p>
+
+                        <p>
+                          x2:{" "}
+                          {
+                            detectedObject.bounding_box.x2
+                          }
+                        </p>
+
+                        <p>
+                          y2:{" "}
+                          {
+                            detectedObject.bounding_box.y2
+                          }
+                        </p>
+                      </article>
+                    ),
+                  )}
+                </div>
+              ) : (
+                <p>
+                  No common objects were detected in this
+                  image.
+                </p>
+              )}
+            </section>
+          )}
+        </div>
       )}
-    </div>
-
-    <div className="dimensions-box">
-      <p>
-        <strong>Original dimensions:</strong>{" "}
-        {uploadResult.dimensions.original_width} ×{" "}
-        {uploadResult.dimensions.original_height}
-      </p>
-
-      <p>
-        <strong>Processed dimensions:</strong>{" "}
-        {uploadResult.dimensions.processed_width} ×{" "}
-        {uploadResult.dimensions.processed_height}
-      </p>
-    </div>
-  </div>
-)}
     </section>
   );
 }

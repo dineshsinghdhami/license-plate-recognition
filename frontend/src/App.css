@@ -223,3 +223,38 @@ button:disabled {
   margin-top: 20px;
 }
 }
+
+.detection-section {
+  margin-top: 36px;
+  padding-top: 28px;
+  border-top: 1px solid #dce3ec;
+}
+
+.detection-summary {
+  margin: 18px 0;
+  font-size: 17px;
+}
+
+.detection-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.detection-item {
+  padding: 14px 16px;
+  text-align: left;
+  background: #f8fafc;
+  border: 1px solid #dce3ec;
+  border-radius: 10px;
+}
+
+.detection-item h3 {
+  margin: 0 0 8px;
+  text-transform: capitalize;
+}
+
+.detection-item p {
+  margin: 5px 0;
+  color: #596579;
+}

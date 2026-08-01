@@ -1,4 +1,6 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL;
+
 
 if (!API_BASE_URL) {
   throw new Error(
@@ -6,30 +8,41 @@ if (!API_BASE_URL) {
   );
 }
 
+
 export async function getBackendHealth() {
-  const response = await fetch(`${API_BASE_URL}/health`);
+  const response = await fetch(
+    `${API_BASE_URL}/health`,
+  );
 
   if (!response.ok) {
-    throw new Error(`Backend returned status ${response.status}`);
+    throw new Error(
+      `Backend returned status ${response.status}`,
+    );
   }
 
   return response.json();
 }
 
+
 export async function uploadVehicleImage(file) {
   const formData = new FormData();
+
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/upload/`, {
-    method: "POST",
-    body: formData,
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/upload/`,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
 
   const data = await response.json();
 
   if (!response.ok) {
     throw new Error(
-      data.detail || "The image could not be uploaded.",
+      data.detail
+        || "The image could not be uploaded.",
     );
   }
 
