@@ -117,3 +117,87 @@ button {
 button:hover {
   background: #1932ac;
 }
+
+.uploader {
+  margin-top: 30px;
+}
+
+.file-label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.uploader input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px dashed #9aa8bd;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.file-information {
+  margin-bottom: 20px;
+  padding: 12px;
+  text-align: left;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.file-information p {
+  margin: 5px 0;
+}
+
+.image-section,
+.result-section {
+  margin-top: 25px;
+}
+
+.preview-image {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+  border: 1px solid #dce3ec;
+  border-radius: 12px;
+  background: #eef2f7;
+}
+
+.image-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.image-comparison h3 {
+  margin-top: 0;
+}
+
+.success-message {
+  margin-top: 18px;
+  color: #15803d;
+  font-weight: 700;
+}
+
+.error-message {
+  margin-top: 18px;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 650px) {
+  .hero {
+    padding: 28px 20px;
+  }
+
+  .image-comparison {
+    grid-template-columns: 1fr;
+  }
+}

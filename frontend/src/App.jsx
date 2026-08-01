@@ -1,21 +1,23 @@
 import ImageUploader from "./components/ImageUploader";
+import "./App.css";
 
 function App() {
+  return (
+    <main className="app-container">
+      <section className="hero">
+        <p className="eyebrow">Computer Vision Project</p>
 
-    return (
+        <h1>License Plate Recognition</h1>
 
-        <div>
+        <p className="description">
+          Upload a vehicle image to begin processing it with
+          OpenCV.
+        </p>
 
-            <h1>
-                License Plate Recognition
-            </h1>
-
-            <ImageUploader/>
-
-        </div>
-
-    );
-
+        <ImageUploader />
+      </section>
+    </main>
+  );
 }
 
 export default App;
