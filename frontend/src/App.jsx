@@ -1,5 +1,5 @@
 import ImageUploader from "./components/ImageUploader";
-import WebcamDetector from "./components/WebcamDetector";
+import VideoDetector from "./components/VideoDetector";
 
 import "./App.css";
 
@@ -9,36 +9,36 @@ function App() {
     <main className="app-container">
       <section className="hero">
         <p className="eyebrow">
-          Nepal Traffic Police
+          Computer Vision Project
         </p>
 
         <h1>
-          License Plate Recognition System
+          License Plate Detection System
         </h1>
 
         <p className="description">
-          Detect license plates from uploaded images
-          or a live camera feed. Images and frames are
-          processed temporarily and are not stored.
+          Detect license plates from images and uploaded
+          videos. Files are processed temporarily and are
+          not stored by the backend.
         </p>
 
         <ImageUploader />
 
-        <section className="live-camera-section">
-          <div className="live-camera-heading">
-            <span>03</span>
+        <section className="video-upload-section">
+          <div className="video-upload-heading">
+            <span>02</span>
 
             <div>
-              <h2>Live camera detection</h2>
+              <h2>Video license-plate detection</h2>
 
               <p>
-                Start your webcam to detect license plates
-                from live frames.
+                Upload and play a traffic video to analyze
+                selected frames without saving the video.
               </p>
             </div>
           </div>
 
-          <WebcamDetector />
+          <VideoDetector />
         </section>
       </section>
     </main>
