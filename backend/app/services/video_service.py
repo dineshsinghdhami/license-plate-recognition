@@ -13,17 +13,12 @@ ImageArray = NDArray[np.uint8]
 
 def should_process_frame(
     frame_number: int,
-    process_every_n_frames: int = 5,
+    process_every_n_frames: int = 3,
 ) -> bool:
     """
-    Decide whether YOLO should process the current frame.
+    Decide whether YOLO should analyze the frame.
 
-    Processing every frame is slow on a CPU. For example,
-    with process_every_n_frames=5, YOLO processes frames:
-
-    0, 5, 10, 15, 20, ...
-
-    The frames between them can still be displayed normally.
+    Processing every third captured frame reduces CPU usage.
     """
 
     if process_every_n_frames < 1:
@@ -31,27 +26,30 @@ def should_process_frame(
             "process_every_n_frames must be at least 1."
         )
 
-    return frame_number % process_every_n_frames == 0
+    return (
+        frame_number % process_every_n_frames == 0
+    )
 
 
 def process_video_frame(
     frame: ImageArray,
     frame_number: int,
-    process_every_n_frames: int = 5,
-    confidence_threshold: float = 0.20,
+    process_every_n_frames: int = 3,
+    confidence_threshold: float = 0.50,
 ) -> dict[str, Any]:
     """
-    Process one video or webcam frame in memory.
+    Process one temporary video frame in memory.
 
-    Nothing is written to uploads or outputs.
-
-    YOLO is skipped on some frames to improve performance.
+    The function returns bounding-box coordinates only.
+    It does not save or return an annotated image.
     """
 
     if frame is None or frame.size == 0:
         raise ValueError(
             "The video frame is empty."
         )
+
+    frame_height, frame_width = frame.shape[:2]
 
     process_this_frame = should_process_frame(
         frame_number=frame_number,
@@ -62,26 +60,28 @@ def process_video_frame(
         return {
             "processed": False,
             "frame_number": frame_number,
+            "frame_width": frame_width,
+            "frame_height": frame_height,
             "detection_count": 0,
             "detections": [],
-            "annotated_image": None,
         }
 
     detection_result = detect_license_plates(
         original_image=frame,
         confidence_threshold=confidence_threshold,
+        image_size=960,
+        include_annotated_image=False,
     )
 
     return {
         "processed": True,
         "frame_number": frame_number,
+        "frame_width": frame_width,
+        "frame_height": frame_height,
         "detection_count": detection_result[
             "detection_count"
         ],
         "detections": detection_result[
             "detections"
-        ],
-        "annotated_image": detection_result[
-            "annotated_image"
         ],
     }

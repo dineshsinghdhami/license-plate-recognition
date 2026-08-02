@@ -25,12 +25,12 @@ async def analyze_video_frame(
     file: UploadFile = File(...),
 ) -> dict:
     """
-    Analyze one video or webcam frame entirely in memory.
+    Analyze one temporary video frame in memory.
 
-    The frame is not saved anywhere.
+    The frame is not saved.
 
-    YOLO processes only selected frames according to the
-    process_every_n_frames value.
+    The response returns frame dimensions and detection
+    coordinates so React can draw boxes over the video.
     """
 
     if file.content_type not in ALLOWED_CONTENT_TYPES:
@@ -61,7 +61,7 @@ async def analyze_video_frame(
         result = process_video_frame(
             frame=frame_image,
             frame_number=frame_number,
-            process_every_n_frames=5,
+            process_every_n_frames=1,
             confidence_threshold=0.20,
         )
 
@@ -73,9 +73,10 @@ async def analyze_video_frame(
             ),
             "processed": result["processed"],
             "frame_number": result["frame_number"],
+            "frame_width": result["frame_width"],
+            "frame_height": result["frame_height"],
             "detection_count": result["detection_count"],
             "detections": result["detections"],
-            "annotated_image": result["annotated_image"],
         }
 
     except HTTPException:

@@ -11,7 +11,13 @@ import {
 
 export default function VideoDetector() {
   const videoRef = useRef(null);
-  const canvasRef = useRef(null);
+
+  // Used only to capture temporary video frames.
+  const captureCanvasRef = useRef(null);
+
+  // Displayed transparently over the playing video.
+  const overlayCanvasRef = useRef(null);
+
   const intervalRef = useRef(null);
   const requestRunningRef = useRef(false);
   const frameNumberRef = useRef(0);
@@ -27,7 +33,10 @@ export default function VideoDetector() {
   const [errorMessage, setErrorMessage] =
     useState("");
 
-  const [detectionResult, setDetectionResult] =
+  const [latestDetections, setLatestDetections] =
+    useState([]);
+
+  const [latestFrameNumber, setLatestFrameNumber] =
     useState(null);
 
 
@@ -60,10 +69,13 @@ export default function VideoDetector() {
     const file = event.target.files?.[0];
 
     stopFrameProcessing();
+    clearOverlay();
 
     setSelectedVideo(null);
-    setDetectionResult(null);
     setErrorMessage("");
+    setLatestDetections([]);
+    setLatestFrameNumber(null);
+
     frameNumberRef.current = 0;
 
     if (!file) {
@@ -107,7 +119,7 @@ export default function VideoDetector() {
 
     intervalRef.current = window.setInterval(
       captureAndAnalyzeFrame,
-      700,
+      500,
     );
   }
 
@@ -126,13 +138,222 @@ export default function VideoDetector() {
   }
 
 
+  function clearOverlay() {
+    const canvas = overlayCanvasRef.current;
+
+    if (!canvas) {
+      return;
+    }
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    context.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+  }
+
+
+  function resizeOverlayCanvas() {
+    const video = videoRef.current;
+    const canvas = overlayCanvasRef.current;
+
+    if (!video || !canvas) {
+      return;
+    }
+
+    const displayedWidth = video.clientWidth;
+    const displayedHeight = video.clientHeight;
+
+    if (!displayedWidth || !displayedHeight) {
+      return;
+    }
+
+    canvas.width = displayedWidth;
+    canvas.height = displayedHeight;
+
+    drawDetections(
+      latestDetections,
+    );
+  }
+
+
+  function drawDetections(
+    detections,
+    sourceWidth = null,
+    sourceHeight = null,
+  ) {
+    const video = videoRef.current;
+    const canvas = overlayCanvasRef.current;
+
+    if (!video || !canvas) {
+      return;
+    }
+
+    const displayedWidth = video.clientWidth;
+    const displayedHeight = video.clientHeight;
+
+    if (!displayedWidth || !displayedHeight) {
+      return;
+    }
+
+    canvas.width = displayedWidth;
+    canvas.height = displayedHeight;
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return;
+    }
+
+    context.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+
+    if (
+      !detections
+      || detections.length === 0
+    ) {
+      return;
+    }
+
+    const originalWidth =
+      sourceWidth || video.videoWidth;
+
+    const originalHeight =
+      sourceHeight || video.videoHeight;
+
+    if (!originalWidth || !originalHeight) {
+      return;
+    }
+
+    const videoAspectRatio =
+      originalWidth / originalHeight;
+
+    const displayAspectRatio =
+      displayedWidth / displayedHeight;
+
+    let renderedWidth;
+    let renderedHeight;
+    let offsetX;
+    let offsetY;
+
+    /*
+     * The video uses object-fit: contain.
+     * These calculations account for black bars
+     * around portrait or landscape videos.
+     */
+    if (displayAspectRatio > videoAspectRatio) {
+      renderedHeight = displayedHeight;
+      renderedWidth =
+        renderedHeight * videoAspectRatio;
+
+      offsetX =
+        (displayedWidth - renderedWidth) / 2;
+
+      offsetY = 0;
+    } else {
+      renderedWidth = displayedWidth;
+      renderedHeight =
+        renderedWidth / videoAspectRatio;
+
+      offsetX = 0;
+
+      offsetY =
+        (displayedHeight - renderedHeight) / 2;
+    }
+
+    const scaleX =
+      renderedWidth / originalWidth;
+
+    const scaleY =
+      renderedHeight / originalHeight;
+
+    context.lineWidth = 3;
+    context.font =
+      "600 14px Arial, sans-serif";
+
+    detections.forEach(
+      (detection) => {
+        const box = detection.bounding_box;
+
+        const x =
+          offsetX + box.x1 * scaleX;
+
+        const y =
+          offsetY + box.y1 * scaleY;
+
+        const width =
+          (box.x2 - box.x1) * scaleX;
+
+        const height =
+          (box.y2 - box.y1) * scaleY;
+
+        const confidencePercentage =
+          (
+            detection.confidence * 100
+          ).toFixed(1);
+
+        const label =
+          `license_plate ${confidencePercentage}%`;
+
+        context.strokeStyle = "#f4b400";
+        context.fillStyle = "#f4b400";
+
+        context.strokeRect(
+          x,
+          y,
+          width,
+          height,
+        );
+
+        const textWidth =
+          context.measureText(label).width;
+
+        const labelHeight = 24;
+
+        const labelY =
+          Math.max(
+            labelHeight,
+            y,
+          );
+
+        context.fillRect(
+          x,
+          labelY - labelHeight,
+          textWidth + 14,
+          labelHeight,
+        );
+
+        context.fillStyle = "#171a1e";
+
+        context.fillText(
+          label,
+          x + 7,
+          labelY - 7,
+        );
+      },
+    );
+  }
+
+
   async function captureAndAnalyzeFrame() {
     const video = videoRef.current;
-    const canvas = canvasRef.current;
+    const captureCanvas =
+      captureCanvasRef.current;
 
     if (
       !video
-      || !canvas
+      || !captureCanvas
       || video.paused
       || video.ended
       || video.readyState < 2
@@ -152,22 +373,23 @@ export default function VideoDetector() {
     setIsProcessing(true);
 
     try {
-      const maximumWidth = 640;
+      const maximumWidth = 1280;
 
       const scale = Math.min(
         1,
         maximumWidth / videoWidth,
       );
 
-      canvas.width = Math.round(
+      captureCanvas.width = Math.round(
         videoWidth * scale,
       );
 
-      canvas.height = Math.round(
+      captureCanvas.height = Math.round(
         videoHeight * scale,
       );
 
-      const context = canvas.getContext("2d");
+      const context =
+        captureCanvas.getContext("2d");
 
       if (!context) {
         throw new Error(
@@ -179,13 +401,13 @@ export default function VideoDetector() {
         video,
         0,
         0,
-        canvas.width,
-        canvas.height,
+        captureCanvas.width,
+        captureCanvas.height,
       );
 
       const frameBlob =
         await new Promise((resolve) => {
-          canvas.toBlob(
+          captureCanvas.toBlob(
             resolve,
             "image/jpeg",
             0.7,
@@ -208,9 +430,23 @@ export default function VideoDetector() {
         currentFrameNumber,
       );
 
-      if (result.processed) {
-        setDetectionResult(result);
+      if (!result.processed) {
+        return;
       }
+
+      setLatestFrameNumber(
+        result.frame_number,
+      );
+
+      setLatestDetections(
+        result.detections,
+      );
+
+      drawDetections(
+        result.detections,
+        result.frame_width,
+        result.frame_height,
+      );
     } catch (error) {
       setErrorMessage(
         error.message
@@ -238,11 +474,17 @@ export default function VideoDetector() {
 
   function handleVideoEnded() {
     stopFrameProcessing();
+    clearOverlay();
+  }
+
+
+  function handleVideoLoadedMetadata() {
+    resizeOverlayCanvas();
   }
 
 
   const firstDetection =
-    detectionResult?.detections?.[0];
+    latestDetections[0];
 
 
   return (
@@ -251,8 +493,9 @@ export default function VideoDetector() {
         <h2>Upload traffic video</h2>
 
         <p>
-          The video stays in your browser. Temporary frames
-          are analyzed in memory and are not stored.
+          The video stays inside your browser.
+          Temporary frames are analyzed in memory
+          and are not stored.
         </p>
       </header>
 
@@ -292,11 +535,11 @@ export default function VideoDetector() {
         </p>
       )}
 
-      <div className="video-detection-layout">
-        <section>
-          <h3>Uploaded video</h3>
+      <section className="video-analysis-panel">
+        <h3>Video license-plate detection</h3>
 
-          {videoUrl ? (
+        {videoUrl ? (
+          <div className="video-overlay-wrapper">
             <video
               ref={videoRef}
               src={videoUrl}
@@ -306,64 +549,67 @@ export default function VideoDetector() {
               onPlay={handleVideoPlay}
               onPause={handleVideoPause}
               onEnded={handleVideoEnded}
+              onLoadedMetadata={
+                handleVideoLoadedMetadata
+              }
             />
-          ) : (
-            <div className="video-empty-state">
-              Select a video to begin
-            </div>
-          )}
 
-          {isProcessing && (
-            <p className="video-processing-status">
-              Analyzing current video frame…
-            </p>
-          )}
-        </section>
+            <canvas
+              ref={overlayCanvasRef}
+              className="video-overlay-canvas"
+              aria-hidden="true"
+            />
+          </div>
+        ) : (
+          <div className="video-empty-state">
+            Select a video to begin
+          </div>
+        )}
 
-        <section>
-          <h3>Latest license-plate detection</h3>
+        <div className="video-status-bar">
+          <span>
+            {isProcessing
+              ? "Analyzing frame..."
+              : "Ready"}
+          </span>
 
-          {detectionResult?.annotated_image ? (
+          <span>
+            Detections: {latestDetections.length}
+          </span>
+
+          <span>
+            Frame:{" "}
+            {latestFrameNumber ?? "—"}
+          </span>
+
+          <span>
+            Confidence:{" "}
+            {firstDetection
+              ? (
+                  firstDetection.confidence
+                  * 100
+                ).toFixed(1)
+              : "—"}
+            {firstDetection ? "%" : ""}
+          </span>
+        </div>
+
+        {firstDetection?.crop_image && (
+          <div className="video-crop-summary">
+            <span>
+              Latest cropped license plate
+            </span>
+
             <img
-              src={detectionResult.annotated_image}
-              alt="Latest video license plate detection"
-              className="video-result-image"
+              src={firstDetection.crop_image}
+              alt="Latest cropped license plate"
             />
-          ) : (
-            <div className="video-empty-state">
-              Play the video to start detection
-            </div>
-          )}
-
-          {firstDetection && (
-            <div className="video-detection-information">
-              <p>
-                <strong>Class:</strong>{" "}
-                {firstDetection.class_name}
-              </p>
-
-              <p>
-                <strong>Confidence:</strong>{" "}
-                {(
-                  firstDetection.confidence * 100
-                ).toFixed(1)}
-                %
-              </p>
-
-              {firstDetection.crop_image && (
-                <img
-                  src={firstDetection.crop_image}
-                  alt="Cropped license plate"
-                  className="video-plate-crop"
-                />
-              )}
-            </div>
-          )}
-        </section>
-      </div>
+          </div>
+        )}
+      </section>
 
       <canvas
-        ref={canvasRef}
+        ref={captureCanvasRef}
         hidden
       />
     </section>

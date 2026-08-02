@@ -51,11 +51,20 @@ def get_license_plate_model() -> YOLO:
 def detect_license_plates(
     original_image: ImageArray,
     confidence_threshold: float = 0.20,
+    image_size: int = 512,
+    include_annotated_image: bool = True,
 ) -> dict[str, Any]:
     """
     Detect license plates from an in-memory image.
 
-    OCR is intentionally disabled for faster processing.
+    image_size:
+        Higher values preserve more detail for small and
+        distant plates, but require more processing time.
+
+    include_annotated_image:
+        Image uploads can request an annotated image.
+        Video frames can disable it and use coordinates only.
+
     Nothing is saved to disk.
     """
 
@@ -64,12 +73,17 @@ def detect_license_plates(
             "The source image is empty."
         )
 
+    if image_size < 320:
+        raise ValueError(
+            "image_size must be at least 320."
+        )
+
     model = get_license_plate_model()
 
     results = model.predict(
         source=original_image,
         conf=confidence_threshold,
-        imgsz=512,
+        imgsz=image_size,
         device="cpu",
         verbose=False,
     )
@@ -80,8 +94,6 @@ def detect_license_plates(
         )
 
     result = results[0]
-
-    annotated_image = result.plot()
 
     image_height, image_width = original_image.shape[:2]
 
@@ -151,11 +163,18 @@ def detect_license_plates(
                 }
             )
 
+    annotated_image: str | None = None
+
+    if include_annotated_image:
+        plotted_image = result.plot()
+
+        annotated_image = encode_image_as_data_url(
+            plotted_image,
+            extension=".jpg",
+        )
+
     return {
         "detection_count": len(detections),
         "detections": detections,
-        "annotated_image": encode_image_as_data_url(
-            annotated_image,
-            extension=".jpg",
-        ),
+        "annotated_image": annotated_image,
     }
