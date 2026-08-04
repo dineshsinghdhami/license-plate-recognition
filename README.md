@@ -1,28 +1,47 @@
 # # License Plate Recognition System using Computer Vision
 
-A full-stack **License Plate Recognition (LPR)** system that automatically detects and recognizes vehicle license plates using modern Computer Vision and Deep Learning techniques.
+A full-stack **License Plate Recognition (LPR)** system that detects vehicle license plates using Computer Vision and Deep Learning techniques. The project is currently focused on building the core detection pipeline, with OCR and additional features planned for future development.
 
-> # **Project Status:** Currently under active development.
+> # **Project Status:** In Development (Prototype Stage)
+
+---
 
 ## # Overview
 
-This project aims to build an intelligent License Plate Recognition System capable of detecting license plates from images, videos, or live webcam streams and extracting the plate number using Optical Character Recognition (OCR).
+This project aims to build an intelligent License Plate Recognition System capable of detecting license plates from uploaded images, videos, or live webcam streams and extracting the license plate number using Optical Character Recognition (OCR).
 
-The project is being developed with a modern full-stack architecture using **React** for the frontend and **FastAPI** for the backend, while leveraging Computer Vision and AI models for accurate plate detection and recognition.
+Currently, the project includes the initial frontend and backend setup along with the object detection pipeline. OCR integration, database storage, and real-time detection are under development.
 
-## # Features (Planned)
+---
 
-- Vehicle image upload
-- Real-time webcam detection
+## # Features
+
+### # Implemented
+- Image upload interface
+- FastAPI backend setup
+- React frontend setup
 - License plate detection using YOLO
-- Character recognition using OCR
+- Detection result visualization
+- REST API integration
+
+### # In Progress
+- OCR integration using EasyOCR
 - Image preprocessing with OpenCV
+- Improved detection accuracy
+- Better frontend UI/UX
+
+### # Planned
+- Real-time webcam detection
+- Video file detection
 - Detection confidence score
 - Store recognized plates in a database
 - Detection history
 - Search and filter recognized plates
-- Responsive React dashboard
-- RESTful FastAPI backend
+- User authentication
+- Dashboard analytics
+- Cloud deployment
+
+---
 
 ## # Tech Stack
 
@@ -39,12 +58,14 @@ The project is being developed with a modern full-stack architecture using **Rea
 ### # Computer Vision & AI
 - OpenCV
 - YOLO
-- EasyOCR
+- EasyOCR (Planned Integration)
 - NumPy
 
 ### # Database
-- SQLite (initially)
-- PostgreSQL (future)
+- SQLite (Planned)
+- PostgreSQL (Future)
+
+---
 
 ## # Project Structure
 
@@ -60,40 +81,68 @@ LICENSE-PLATE-RECOGNITION/
 ├── README.md
 ```
 
+---
+
 ## # Project Goals
 
-- Learn Computer Vision from scratch
-- Build a complete AI-powered application
-- Understand object detection using YOLO
-- Learn OCR techniques
-- Develop a production-ready full-stack application
+- Learn Computer Vision fundamentals
+- Build an AI-powered License Plate Recognition System
+- Implement object detection using YOLO
+- Integrate OCR for text recognition
+- Develop a modern full-stack application
 - Deploy the project to the cloud
+
+---
 
 ## # Current Progress
 
-- ✅ Project planning
-- ✅ Repository created
-- ✅ Folder structure created
-- 🔄 Backend development
-- 🔄 Frontend development
-- ⏳ Image upload
-- ⏳ Plate detection
-- ⏳ OCR integration
+- ✅ Repository setup completed
+- ✅ Project structure organized
+- ✅ React frontend initialized
+- ✅ FastAPI backend initialized
+- ✅ YOLO license plate detection integrated
+- ✅ Image upload and API communication
+- 🔄 OCR integration using EasyOCR
+- 🔄 Detection result improvements
 - ⏳ Database integration
-- ⏳ Deployment
+- ⏳ Detection history
+- ⏳ Webcam & video support
+- ⏳ Cloud deployment
+
+---
 
 ## # Learning Journey
 
-This repository also serves as my learning journey in:
+This repository documents my journey of learning and implementing:
+
 - Python
 - FastAPI
 - React
 - OpenCV
-- YOLO
-- OCR
+- YOLO Object Detection
+- EasyOCR
 - Computer Vision
+- REST API Development
 - Full Stack Development
+
+---
+
+## # Future Improvements
+
+- Improve detection accuracy
+- Support multiple license plates in one image
+- Real-time webcam recognition
+- Video stream processing
+- Automatic OCR text extraction
+- Export detection results
+- Responsive dashboard
+- Authentication system
+- Docker support
+- CI/CD pipeline
+- Cloud deployment
+
+---
 
 ## # Contributions
 
-This project is currently being developed for learning purposes. Suggestions and improvements are always welcome.
+This project is being developed as a learning project while exploring Computer Vision and Full Stack Development. Feedback, suggestions, and contributions are always welcome.
