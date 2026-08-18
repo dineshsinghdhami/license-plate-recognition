@@ -146,3 +146,13 @@ This repository documents my journey of learning and implementing:
 ## # Contributions
 
 This project is being developed as a learning project while exploring Computer Vision and Full Stack Development. Feedback, suggestions, and contributions are always welcome.
+
+---
+
+## # Author
+
+**Dinesh Singh Dhami**
+
+* Website: https://dineshsinghdhami.com.np
+* GitHub: https://github.com/dineshsinghdhami
+* Email: [dineshdhamidn@gmail.com](mailto:dineshdhamidn@gmail.com)
