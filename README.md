@@ -2,8 +2,6 @@
 
 A full-stack **License Plate Recognition (LPR)** system that detects vehicle license plates using Computer Vision and Deep Learning techniques. The project is currently focused on building the core detection pipeline, with OCR and additional features planned for future development.
 
-> # **Project Status:** In Development (Prototype Stage)
-
 ---
 
 ## # Overview
@@ -153,6 +151,7 @@ This project is being developed as a learning project while exploring Computer V
 
 **Dinesh Singh Dhami**
 
-* Website: https://dineshsinghdhami.com.np
-* GitHub: https://github.com/dineshsinghdhami
+* Website: https://dineshsinghdhami.com.np/
+* GitHub: https://github.com/dineshsinghdhami/
+* Linkedin: https://www.linkedin.com/in/dineshsinghdhami2/
 * Email: [dineshdhamidn@gmail.com](mailto:dineshdhamidn@gmail.com)
